@@ -22,45 +22,76 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
     setIsDragging(false);
   }, []);
 
+  const processEntry = useCallback((entry: FileSystemEntry, path: string = ""): Promise<File[]> => {
+    return new Promise((resolve) => {
+      if (entry.isFile) {
+        (entry as FileSystemFileEntry).file((file) => {
+          const fileWithPath = new File([file], path + file.name, {
+            type: file.type,
+            lastModified: file.lastModified,
+          });
+          resolve([fileWithPath]);
+        });
+      } else if (entry.isDirectory) {
+        const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+        const allFiles: File[] = [];
+        let completed = false;
+
+        const readBatch = () => {
+          dirReader.readEntries(async (entries) => {
+            if (entries.length === 0) {
+              if (completed) {
+                resolve(allFiles);
+              }
+              completed = true;
+              return;
+            }
+
+            const promises = entries.map((subEntry) =>
+              processEntry(subEntry, path + entry.name + "/")
+            );
+            const results = await Promise.all(promises);
+            for (const files of results) {
+              allFiles.push(...files);
+            }
+            readBatch();
+          });
+        };
+
+        readBatch();
+      } else {
+        resolve([]);
+      }
+    });
+  }, []);
+
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
 
       const items = e.dataTransfer.items;
-      const files: File[] = [];
+      const allFiles: File[] = [];
 
-      const processEntry = (entry: FileSystemEntry, path: string = "") => {
-        if (entry.isFile) {
-          (entry as FileSystemFileEntry).file((file) => {
-            const fileWithPath = new File([file], path + file.name, { type: file.type });
-            files.push(fileWithPath);
-          });
-        } else if (entry.isDirectory) {
-          const dirReader = (entry as FileSystemDirectoryEntry).createReader();
-          dirReader.readEntries((entries) => {
-            entries.forEach((subEntry) => {
-              processEntry(subEntry, path + entry.name + "/");
-            });
-          });
-        }
-      };
+      const promises: Promise<File[]>[] = [];
 
       for (let i = 0; i < items.length; i++) {
         const item = items[i].webkitGetAsEntry();
         if (item) {
-          processEntry(item);
+          promises.push(processEntry(item));
         }
       }
 
-      // Small delay to let files be processed
-      setTimeout(() => {
-        if (files.length > 0) {
-          onUpload(files, versionName || undefined);
-        }
-      }, 100);
+      const results = await Promise.all(promises);
+      for (const files of results) {
+        allFiles.push(...files);
+      }
+
+      if (allFiles.length > 0) {
+        onUpload(allFiles, versionName || undefined);
+      }
     },
-    [onUpload, versionName]
+    [onUpload, versionName, processEntry]
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,12 +143,10 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
         </button>
       </div>
 
-      {/* Decorative elements */}
       <div className="absolute top-3 right-3 text-slate-300 text-xs">
         点击上传
       </div>
 
-      {/* Version name input */}
       <div className="mt-4 pt-4 border-t border-slate-100">
         <input
           type="text"
@@ -129,7 +158,6 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
         />
       </div>
 
-      {/* Pulse animation overlay when dragging */}
       {isDragging && (
         <div className="absolute inset-0 rounded-2xl bg-teal-500/10 animate-pulse pointer-events-none" />
       )}

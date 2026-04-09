@@ -32,8 +32,8 @@ export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [shareVersionId, setShareVersionId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Fetch versions
   const fetchVersions = useCallback(async () => {
     try {
       const res = await fetch("/api/versions");
@@ -44,7 +44,6 @@ export default function HomePage() {
     }
   }, []);
 
-  // Fetch files for current version
   const fetchFiles = useCallback(async (versionId: string) => {
     try {
       const res = await fetch(`/api/files?versionId=${versionId}`);
@@ -89,6 +88,7 @@ export default function HomePage() {
       if (res.ok) {
         const data = await res.json();
         setCurrentVersionId(data.versionId);
+        setSidebarOpen(false);
         await fetchVersions();
       }
     } catch (error) {
@@ -154,42 +154,55 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">📐</span>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">ProSpec</h1>
-                <p className="text-xs text-slate-500">原型与需求分享平台</p>
-              </div>
+      <header className="bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📐</span>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800">ProSpec</h1>
             </div>
-            {versions.length > 0 && (
-              <div className="text-sm text-slate-500">
-                共 {versions.length} 个版本
-              </div>
-            )}
           </div>
+          {versions.length > 0 && (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                共 {versions.length} 个版本
+              </span>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500"
+                title={sidebarOpen ? "收起侧边栏" : "展开侧边栏"}
+              >
+                {sidebarOpen ? "◀" : "▶"}
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left column: Upload + Version timeline */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-6">
-            {/* Upload zone */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left sidebar (Upload + Versions) */}
+        <aside
+          className={`
+            flex-shrink-0 bg-white border-r border-slate-200 flex flex-col
+            transition-all duration-300 ease-in-out overflow-hidden
+            ${sidebarOpen ? "w-96" : "w-0"}
+          `}
+        >
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <UploadZone onUpload={handleUpload} isUploading={isUploading} />
 
-            {/* Version timeline */}
             {versions.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-4">
+              <div className="bg-slate-50 rounded-xl p-3">
                 <VersionTimeline
                   versions={versions}
                   currentVersionId={currentVersionId}
-                  onSelectVersion={setCurrentVersionId}
+                  onSelectVersion={(id) => {
+                    setCurrentVersionId(id);
+                    setSelectedFile(null);
+                  }}
                   onDeleteVersion={handleDeleteVersion}
                   onShareVersion={setShareVersionId}
                   onDownloadZip={handleDownloadZip}
@@ -198,52 +211,50 @@ export default function HomePage() {
               </div>
             )}
           </div>
+        </aside>
 
-          {/* Right column: File browser + Preview */}
-          <div className="lg:col-span-8 xl:col-span-9">
-            {currentVersionId ? (
-              <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 h-[calc(100vh-200px)]">
-                {/* Directory tree */}
-                <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
-                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                    <h2 className="font-semibold text-slate-700 flex items-center gap-2">
-                      <span>📂</span> 文件列表
-                    </h2>
-                  </div>
-                  <div className="flex-1 overflow-auto p-2">
-                    <DirectoryTree
-                      tree={fileTree}
-                      selectedPath={selectedFile?.path || null}
-                      onFileSelect={handleFileSelect}
-                    />
-                  </div>
-                </div>
+        {/* Center: Directory tree */}
+        {currentVersionId && (
+          <div className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+              <span>📂</span>
+              <span className="font-semibold text-slate-700 text-sm">文件列表</span>
+              <span className="ml-auto text-xs text-slate-400">{files.length} 个文件</span>
+            </div>
+            <div className="flex-1 overflow-auto p-2">
+              <DirectoryTree
+                tree={fileTree}
+                selectedPath={selectedFile?.path || null}
+                onFileSelect={handleFileSelect}
+              />
+            </div>
+          </div>
+        )}
 
-                {/* Preview */}
-                <div className="xl:col-span-3">
-                  <FilePreview
-                    file={selectedFile}
-                    versionId={currentVersionId}
-                    onClose={() => setSelectedFile(null)}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
+        {/* Right: Preview */}
+        <main className="flex-1 overflow-hidden p-4">
+          {currentVersionId ? (
+            <FilePreview
+              file={selectedFile}
+              versionId={currentVersionId}
+              onClose={() => setSelectedFile(null)}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
                 <div className="text-6xl mb-4">🚀</div>
                 <h2 className="text-xl font-bold text-slate-800 mb-2">
                   上传你的第一个原型
                 </h2>
-                <p className="text-slate-500 max-w-md mx-auto">
-                  拖放文件夹或点击上方区域上传，HTML 文件将直接预览，支持完整目录结构
+                <p className="text-slate-500 max-w-md">
+                  拖放文件夹或点击上方区域上传，HTML 文件将直接预览
                 </p>
               </div>
-            )}
-          </div>
-        </div>
-      </main>
+            </div>
+          )}
+        </main>
+      </div>
 
-      {/* Share modal */}
       {shareVersionId && (
         <ShareModal
           versionId={shareVersionId}

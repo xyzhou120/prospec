@@ -62,7 +62,7 @@ export default function SharePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="text-5xl mb-4 animate-bounce">⏳</div>
           <p className="text-slate-500">加载中...</p>
@@ -73,7 +73,7 @@ export default function SharePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
           <h1 className="text-xl font-bold text-slate-800 mb-2">{error}</h1>
@@ -84,77 +84,68 @@ export default function SharePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">📐</span>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">ProSpec</h1>
-                <p className="text-xs text-slate-500">只读视图 · 来自产品经理的分享</p>
-              </div>
+      <header className="bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📐</span>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800">ProSpec</h1>
+              <p className="text-xs text-slate-500">只读视图 · 来自产品经理的分享</p>
             </div>
-            {version && (
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="font-medium text-slate-800">
-                    {version.name || "未命名版本"}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {formatDate(version.created_at)}
-                  </div>
-                </div>
-                {version.is_latest === 1 && (
-                  <span className="px-2 py-1 text-xs bg-orange-100 text-orange-600 rounded font-medium">
-                    最新
-                  </span>
-                )}
-              </div>
-            )}
           </div>
+          {version && (
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="font-medium text-slate-800">
+                  {version.name || "未命名版本"}
+                </div>
+                <div className="text-xs text-slate-500">
+                  {formatDate(version.created_at)}
+                </div>
+              </div>
+              {version.is_latest === 1 && (
+                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-600 rounded font-medium">
+                  最新
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left: File tree */}
-          <div className="lg:col-span-5 xl:col-span-4">
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <h2 className="font-semibold text-slate-700 flex items-center gap-2">
-                  <span>📂</span> 文件列表
-                  <span className="text-xs text-slate-400 font-normal ml-auto">
-                    {files.length} 个文件
-                  </span>
-                </h2>
-              </div>
-              <div className="p-2">
-                <DirectoryTree
-                  tree={fileTree}
-                  selectedPath={selectedFile?.path || null}
-                  onFileSelect={handleFileSelect}
-                />
-              </div>
-            </div>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: File tree */}
+        <div className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+            <span>📂</span>
+            <span className="font-semibold text-slate-700 text-sm">文件列表</span>
+            <span className="ml-auto text-xs text-slate-400">{files.length} 个文件</span>
           </div>
-
-          {/* Right: Preview */}
-          <div className="lg:col-span-7 xl:col-span-8">
-            <FilePreview
-              file={selectedFile}
-              versionId={versionId}
-              onClose={() => setSelectedFile(null)}
+          <div className="flex-1 overflow-auto p-2">
+            <DirectoryTree
+              tree={fileTree}
+              selectedPath={selectedFile?.path || null}
+              onFileSelect={handleFileSelect}
             />
           </div>
         </div>
-      </main>
+
+        {/* Right: Preview */}
+        <main className="flex-1 overflow-hidden p-4">
+          <FilePreview
+            file={selectedFile}
+            versionId={versionId}
+            onClose={() => setSelectedFile(null)}
+          />
+        </main>
+      </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-3">
-        <div className="max-w-7xl mx-auto px-6 text-center text-xs text-slate-400">
+      <footer className="bg-white border-t border-slate-200 py-2 flex-shrink-0">
+        <div className="px-6 text-center text-xs text-slate-400">
           此为只读视图，如需上传或编辑，请联系产品经理
         </div>
       </footer>

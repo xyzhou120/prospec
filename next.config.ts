@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  allowedDevOrigins: ["172.26.5.54"],
 };
 
 export default nextConfig;
