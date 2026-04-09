@@ -11,6 +11,8 @@ services:
       - ./data:/data
     environment:
       - NODE_ENV=production
+      - USE_LOCAL_STORAGE=${USE_LOCAL_STORAGE:-true}
+      - LOCAL_STORAGE_PATH=/data/files
       - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
       - MINIO_PORT=${MINIO_PORT:-9000}
       - MINIO_USE_SSL=${MINIO_USE_SSL:-false}
@@ -20,4 +22,3 @@ services:
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
       - DATABASE_PATH=/data/prospec.db
     restart: unless-stopped
-

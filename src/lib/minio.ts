@@ -3,8 +3,9 @@ import fs from "fs";
 import path from "path";
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE !== "false";
-
-const LOCAL_STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || "./data/files";
+const DATABASE_PATH = process.env.DATABASE_PATH || "./data/prospec.db";
+const LOCAL_STORAGE_PATH =
+  process.env.LOCAL_STORAGE_PATH || path.join(path.dirname(DATABASE_PATH), "files");
 
 let minioClient: MinioClient | null = null;
 
