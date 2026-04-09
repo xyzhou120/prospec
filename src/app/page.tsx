@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import UploadZone from "@/components/UploadZone";
 import DirectoryTree from "@/components/DirectoryTree";
-import FilePreview from "@/components/FilePreview";
+import PreviewPane from "@/components/PreviewPane";
 import VersionTimeline from "@/components/VersionTimeline";
 import ShareModal from "@/components/ShareModal";
 import { buildFileTree, TreeNode } from "@/lib/utils";
@@ -234,7 +234,7 @@ export default function HomePage() {
         {/* Right: Preview */}
         <main className="flex-1 overflow-hidden p-4">
           {currentVersionId ? (
-            <FilePreview
+            <PreviewPane
               file={selectedFile}
               versionId={currentVersionId}
               onClose={() => setSelectedFile(null)}

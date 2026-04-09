@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import DirectoryTree from "@/components/DirectoryTree";
-import FilePreview from "@/components/FilePreview";
+import PreviewPane from "@/components/PreviewPane";
 import { buildFileTree, TreeNode, formatDate } from "@/lib/utils";
 
 interface FileRecord {
@@ -20,6 +20,29 @@ interface Version {
   name: string | null;
   created_at: string;
   is_latest: number;
+}
+
+function getDefaultSharedFile(files: FileRecord[]): FileRecord | null {
+  if (files.length === 0) {
+    return null;
+  }
+
+  const preferredMatchers = [
+    (file: FileRecord) => file.type === "html" && /(^|\/)index\.html?$/i.test(file.path),
+    (file: FileRecord) => file.type === "html",
+    (file: FileRecord) => file.type === "pdf" || file.type === "image",
+    (file: FileRecord) =>
+      ["css", "javascript", "json", "markdown", "text", "typescript"].includes(file.type),
+  ];
+
+  for (const matcher of preferredMatchers) {
+    const matched = files.find(matcher);
+    if (matched) {
+      return matched;
+    }
+  }
+
+  return files[0];
 }
 
 export default function SharePage() {
@@ -45,6 +68,7 @@ export default function SharePage() {
         setVersion(data.version);
         setFiles(data.files);
         setFileTree(buildFileTree(data.files));
+        setSelectedFile(getDefaultSharedFile(data.files));
       } catch (err) {
         setError("加载失败，请检查链接是否正确");
       } finally {
@@ -118,7 +142,7 @@ export default function SharePage() {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: File tree */}
-        <div className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+        <div className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
           <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <span>📂</span>
             <span className="font-semibold text-slate-700 text-sm">文件列表</span>
@@ -134,17 +158,19 @@ export default function SharePage() {
         </div>
 
         {/* Right: Preview */}
-        <main className="flex-1 overflow-hidden p-4">
-          <FilePreview
+        <main className="flex-1 overflow-hidden bg-white">
+          <PreviewPane
             file={selectedFile}
             versionId={versionId}
             onClose={() => setSelectedFile(null)}
+            immersive
+            showCloseButton={false}
           />
         </main>
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-2 flex-shrink-0">
+      <footer className="hidden">
         <div className="px-6 text-center text-xs text-slate-400">
           此为只读视图，如需上传或编辑，请联系产品经理
         </div>

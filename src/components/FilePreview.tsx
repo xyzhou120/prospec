@@ -56,12 +56,26 @@ interface FilePreviewProps {
   } | null;
   versionId: string;
   onClose: () => void;
+  immersive?: boolean;
+  showCloseButton?: boolean;
 }
 
-export default function FilePreview({ file, versionId, onClose }: FilePreviewProps) {
+export default function FilePreview({
+  file,
+  versionId,
+  onClose,
+  immersive = false,
+  showCloseButton = true,
+}: FilePreviewProps) {
   if (!file) {
     return (
-      <div className="h-full flex items-center justify-center bg-white rounded-xl border border-slate-200">
+      <div
+        className={
+          immersive
+            ? "h-full flex items-center justify-center bg-white"
+            : "h-full flex items-center justify-center bg-white rounded-xl border border-slate-200"
+        }
+      >
         <div className="text-center text-slate-400">
           <div className="text-5xl mb-4">👈</div>
           <p className="text-sm">从左侧选择一个文件预览</p>
@@ -79,9 +93,21 @@ export default function FilePreview({ file, versionId, onClose }: FilePreviewPro
   const fileUrl = `/api/download/${versionId}/${file.path}`;
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div
+      className={
+        immersive
+          ? "h-full flex flex-col bg-white overflow-hidden"
+          : "h-full flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden"
+      }
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
+      <div
+        className={
+          immersive
+            ? "flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white"
+            : "flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50"
+        }
+      >
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-2xl">📄</span>
           <div className="min-w-0">

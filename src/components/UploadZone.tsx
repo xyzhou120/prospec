@@ -22,7 +22,10 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
     setIsDragging(false);
   }, []);
 
-  const processEntry = useCallback((entry: FileSystemEntry, path: string = ""): Promise<File[]> => {
+  const processEntry = useCallback(function processEntry(
+    entry: FileSystemEntry,
+    path: string = ""
+  ): Promise<File[]> {
     return new Promise((resolve) => {
       if (entry.isFile) {
         (entry as FileSystemFileEntry).file((file) => {
