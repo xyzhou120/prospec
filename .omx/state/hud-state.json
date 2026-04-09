@@ -1,0 +1,6 @@
+{
+  "last_turn_at": "2026-04-09T05:53:23.189Z",
+  "turn_count": 5,
+  "last_progress_at": "2026-04-09T05:53:23.189Z",
+  "last_agent_output": "修好了。\n\n现在版本历史切换版本后会自动预览默认文件，规则是：\n- 先找 `index.html`\n- 没有就找任意 `html`\n- 再没有就预览文件列表第一个文件\n\n改动在：\n- [src/lib"
+}

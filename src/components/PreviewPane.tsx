@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { formatBytes } from "@/lib/utils";
@@ -35,7 +35,7 @@ function CodePreview({ fileUrl }: { fileUrl: string }) {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center text-slate-400">
-        <span className="animate-pulse">鍔犺浇涓?..</span>
+        <span className="animate-pulse">加载中...</span>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function PreviewPane({
         }
       >
         <div className="text-center text-slate-400">
-          <div className="text-5xl mb-4">馃憟</div>
+          <div className="text-5xl mb-4">📄</div>
           <p className="text-sm">从左侧选择一个文件进行预览</p>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function PreviewPane({
         }
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-2xl">馃搫</span>
+          <span className="text-2xl">📄</span>
           <div className="min-w-0">
             <h3 className="font-semibold text-slate-800 truncate">{file.name}</h3>
             <p className="text-xs text-slate-500">{formatBytes(file.size)}</p>
@@ -105,9 +105,9 @@ export default function PreviewPane({
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
-            title="鍏抽棴棰勮"
+            title="关闭预览"
           >
-            鉁?
+            ✕
           </button>
         ) : null}
       </div>
@@ -139,14 +139,14 @@ export default function PreviewPane({
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-500">
-            <div className="text-5xl mb-4">馃搸</div>
+            <div className="text-5xl mb-4">📦</div>
             <p className="text-sm mb-4">该文件类型暂不支持在线预览</p>
             <a
               href={fileUrl}
               download={file.name}
               className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors"
             >
-              涓嬭浇鏂囦欢
+              下载文件
             </a>
           </div>
         )}

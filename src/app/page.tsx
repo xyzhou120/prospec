@@ -6,7 +6,7 @@ import DirectoryTree from "@/components/DirectoryTree";
 import PreviewPane from "@/components/PreviewPane";
 import VersionTimeline from "@/components/VersionTimeline";
 import ShareModal from "@/components/ShareModal";
-import { buildFileTree, TreeNode } from "@/lib/utils";
+import { buildFileTree, getDefaultPreviewFile, TreeNode } from "@/lib/utils";
 
 interface FileRecord {
   id: string;
@@ -48,8 +48,10 @@ export default function HomePage() {
     try {
       const res = await fetch(`/api/files?versionId=${versionId}`);
       const data = await res.json();
-      setFiles(data.files || []);
-      setFileTree(buildFileTree(data.files || []));
+      const nextFiles: FileRecord[] = data.files || [];
+      setFiles(nextFiles);
+      setFileTree(buildFileTree(nextFiles));
+      setSelectedFile(getDefaultPreviewFile(nextFiles));
     } catch (error) {
       console.error("Failed to fetch files:", error);
     }
@@ -98,7 +100,7 @@ export default function HomePage() {
     }
   };
 
-  const handleFileSelect = (path: string, type: string) => {
+  const handleFileSelect = (path: string) => {
     const file = files.find((f) => f.path === path);
     setSelectedFile(file || null);
   };

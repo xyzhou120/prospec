@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import DirectoryTree from "@/components/DirectoryTree";
 import PreviewPane from "@/components/PreviewPane";
-import { buildFileTree, TreeNode, formatDate } from "@/lib/utils";
+import { buildFileTree, getDefaultPreviewFile, TreeNode, formatDate } from "@/lib/utils";
 
 interface FileRecord {
   id: string;
@@ -20,29 +20,6 @@ interface Version {
   name: string | null;
   created_at: string;
   is_latest: number;
-}
-
-function getDefaultSharedFile(files: FileRecord[]): FileRecord | null {
-  if (files.length === 0) {
-    return null;
-  }
-
-  const preferredMatchers = [
-    (file: FileRecord) => file.type === "html" && /(^|\/)index\.html?$/i.test(file.path),
-    (file: FileRecord) => file.type === "html",
-    (file: FileRecord) => file.type === "pdf" || file.type === "image",
-    (file: FileRecord) =>
-      ["css", "javascript", "json", "markdown", "text", "typescript"].includes(file.type),
-  ];
-
-  for (const matcher of preferredMatchers) {
-    const matched = files.find(matcher);
-    if (matched) {
-      return matched;
-    }
-  }
-
-  return files[0];
 }
 
 export default function SharePage() {
@@ -65,11 +42,12 @@ export default function SharePage() {
           return;
         }
         const data = await res.json();
+        const nextFiles: FileRecord[] = data.files || [];
         setVersion(data.version);
-        setFiles(data.files);
-        setFileTree(buildFileTree(data.files));
-        setSelectedFile(getDefaultSharedFile(data.files));
-      } catch (err) {
+        setFiles(nextFiles);
+        setFileTree(buildFileTree(nextFiles));
+        setSelectedFile(getDefaultPreviewFile(nextFiles));
+      } catch {
         setError("加载失败，请检查链接是否正确");
       } finally {
         setLoading(false);
@@ -79,7 +57,7 @@ export default function SharePage() {
     fetchShared();
   }, [versionId]);
 
-  const handleFileSelect = (path: string, type: string) => {
+  const handleFileSelect = (path: string) => {
     const file = files.find((f) => f.path === path);
     setSelectedFile(file || null);
   };

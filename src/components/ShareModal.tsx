@@ -9,8 +9,9 @@ interface ShareModalProps {
 
 export default function ShareModal({ versionId, onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-  const shareUrl = `${baseUrl}/share/${versionId}`;
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [baseUrl, setBaseUrl] = useState(process.env.NEXT_PUBLIC_BASE_URL || "");
+  const shareUrl = baseUrl ? `${baseUrl}/share/${versionId}` : "";
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -20,13 +21,56 @@ export default function ShareModal({ versionId, onClose }: ShareModalProps) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
+  useEffect(() => {
+    if (baseUrl) {
+      return;
+    }
+
+    setBaseUrl(window.location.origin);
+  }, [baseUrl]);
+
+  const resetCopyState = () => {
+    setTimeout(() => {
+      setCopied(false);
+      setCopyFailed(false);
+    }, 2000);
+  };
+
+  const copyWithFallback = (value: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    const copiedWithExecCommand = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    return copiedWithExecCommand;
+  };
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      if (!shareUrl) {
+        throw new Error("Share URL is not ready yet");
+      }
+
+      if (window.isSecureContext && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else if (!copyWithFallback(shareUrl)) {
+        throw new Error("Clipboard API is unavailable");
+      }
+
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopyFailed(false);
+      resetCopyState();
     } catch (err) {
       console.error("Failed to copy:", err);
+      setCopied(false);
+      setCopyFailed(true);
+      resetCopyState();
     }
   };
 
@@ -72,15 +116,23 @@ export default function ShareModal({ versionId, onClose }: ShareModalProps) {
         {/* Copy button */}
         <button
           onClick={handleCopy}
+          disabled={!shareUrl}
           className={`
             w-full py-3 rounded-xl font-medium transition-all duration-200
             ${copied
               ? "bg-green-500 text-white"
+              : copyFailed
+                ? "bg-red-500 text-white"
               : "bg-teal-600 text-white hover:bg-teal-700"
             }
+            ${shareUrl ? "" : "opacity-60 cursor-not-allowed"}
           `}
         >
-          {copied ? "✓ 已复制到剪贴板" : "复制链接"}
+          {copied
+            ? "✓ 已复制到剪贴板"
+            : copyFailed
+              ? "复制失败，请手动复制"
+              : "复制链接"}
         </button>
 
         {/* Note */}

@@ -68,6 +68,28 @@ export function getFileIcon(type: string): string {
   return iconMap[type] || iconMap.file;
 }
 
+export function getDefaultPreviewFile<T extends { path: string; type: string }>(
+  files: T[],
+): T | null {
+  if (files.length === 0) {
+    return null;
+  }
+
+  const preferredMatchers = [
+    (file: T) => file.type === "html" && /(^|\/)index\.html?$/i.test(file.path),
+    (file: T) => file.type === "html",
+  ];
+
+  for (const matcher of preferredMatchers) {
+    const matched = files.find(matcher);
+    if (matched) {
+      return matched;
+    }
+  }
+
+  return files[0];
+}
+
 export interface TreeNode {
   name: string;
   path: string;
