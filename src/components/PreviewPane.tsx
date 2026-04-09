@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { formatBytes } from "@/lib/utils";
 
 interface PreviewFile {
@@ -56,6 +56,18 @@ export default function PreviewPane({
   immersive = false,
   showCloseButton = true,
 }: PreviewPaneProps) {
+  const previewPaneRef = useRef<HTMLDivElement | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === previewPaneRef.current);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   if (!file) {
     return (
       <div
@@ -79,8 +91,22 @@ export default function PreviewPane({
   const isCode = ["css", "javascript", "json", "markdown", "text", "typescript"].includes(file.type);
   const fileUrl = `/api/download/${versionId}/${file.path}`;
 
+  const handleToggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement === previewPaneRef.current) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      await previewPaneRef.current?.requestFullscreen();
+    } catch (error) {
+      console.error("Failed to toggle fullscreen preview:", error);
+    }
+  };
+
   return (
     <div
+      ref={previewPaneRef}
       className={
         immersive
           ? "h-full flex flex-col bg-white overflow-hidden"
@@ -101,15 +127,27 @@ export default function PreviewPane({
             <p className="text-xs text-slate-500">{formatBytes(file.size)}</p>
           </div>
         </div>
-        {showCloseButton ? (
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
-            title="关闭预览"
-          >
-            ✕
-          </button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {isHtml ? (
+            <button
+              onClick={handleToggleFullscreen}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800"
+              title={isFullscreen ? "退出全屏预览" : "全屏预览"}
+            >
+              <span className="text-base leading-none">{isFullscreen ? "⤡" : "⤢"}</span>
+              <span>{isFullscreen ? "退出全屏" : "全屏预览"}</span>
+            </button>
+          ) : null}
+          {showCloseButton ? (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+              title="关闭预览"
+            >
+              ✕
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className={immersive ? "flex-1 overflow-auto bg-white" : "flex-1 overflow-auto bg-slate-50"}>
