@@ -1,6 +1,6 @@
 {
-  "last_turn_at": "2026-04-09T09:40:24.746Z",
-  "turn_count": 13,
-  "last_progress_at": "2026-04-09T09:40:24.746Z",
-  "last_agent_output": "已经按这个方向收好了，而且按钮上不再有 `demo` 或“演示”字样。\n\n现在 HTML 预览头部整体已经变成一条更完整的工具条：\n- 整条头部用了更亮的渐变背景和柔光层，不再只是按钮单独抢眼\n- 左"
+  "last_turn_at": "2026-04-10T08:31:54.376Z",
+  "turn_count": 18,
+  "last_progress_at": "2026-04-10T08:31:54.376Z",
+  "last_agent_output": "已修复 Axure 导出目录里“中文 HTML 文件预览 404”的核心问题。\n\n问题不在文件不存在，而在下载路由给响应头写了原始中文文件名，`Content-Disposition` 构造失败后被误"
 }

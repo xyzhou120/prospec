@@ -75,6 +75,26 @@ export function getDefaultPreviewFile<T extends { path: string; type: string }>(
     return null;
   }
 
+  const axureRuntimeSuffix = "resources/scripts/player/axplayer.js";
+  const axureDocumentSuffix = "data/document.js";
+  const axureRoots = files
+    .filter((file) => file.path.endsWith(axureRuntimeSuffix))
+    .map((file) => file.path.slice(0, -axureRuntimeSuffix.length));
+
+  for (const root of axureRoots) {
+    const hasDocumentFile = files.some((file) => file.path === `${root}${axureDocumentSuffix}`);
+    if (!hasDocumentFile) {
+      continue;
+    }
+
+    const axureEntry = files.find((file) => file.path === `${root}start.html`)
+      || files.find((file) => file.path === `${root}index.html`);
+
+    if (axureEntry) {
+      return axureEntry;
+    }
+  }
+
   const preferredMatchers = [
     (file: T) => file.type === "html" && /(^|\/)index\.html?$/i.test(file.path),
     (file: T) => file.type === "html",

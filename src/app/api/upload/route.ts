@@ -24,16 +24,21 @@ export async function POST(request: NextRequest) {
       if (!file.name) continue;
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const filePath = (file as File & { path?: string }).path || file.name;
+      const filePath =
+        (file as File & { path?: string; webkitRelativePath?: string }).path
+        || (file as File & { webkitRelativePath?: string }).webkitRelativePath
+        || file.name;
+      const normalizedPath = filePath.replace(/\\/g, "/");
+      const fileName = normalizedPath.split("/").pop() || file.name;
 
-      await uploadFile(versionId, filePath, buffer);
+      await uploadFile(versionId, normalizedPath, buffer);
 
       addFile(
         {
           id: generateId(),
-          path: filePath,
-          name: file.name,
-          type: getFileType(file.name),
+          path: normalizedPath,
+          name: fileName,
+          type: getFileType(fileName),
           size: file.size,
         },
         versionId
